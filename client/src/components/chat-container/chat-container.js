@@ -1,7 +1,12 @@
 import { LitElement, html } from 'lit';
 import { style } from './chatStyle';
 import { io } from 'https://cdn.socket.io/4.4.1/socket.io.esm.min.js';
+import '../message-card/message-card';
+import { sendIcon } from '../../icons/sendIcon';
+// store => data
+// helper functions => add message update state AND update DOM
 
+// https://dribbble.com/shots/16507884-Chatbot/attachments/11477943?mode=media
 export class ChatContainer extends LitElement {
   static get properties() {
     return {
@@ -15,11 +20,32 @@ export class ChatContainer extends LitElement {
        * @type {string}
        */
       name: { type: String, state: true },
+
+      // TODO:change to one object
       /**
-       * data.
-       * @type {object}
+       * The message you want to response.
+       *
+       * @type {string}
        */
-      data: { type: Object, state: true },
+      idToResponse: { type: String },
+      /**
+       * The message you want to response.
+       *
+       * @type {string}
+       */
+      messageToResponse: { type: String },
+      /**
+       * The current socket
+       *
+       * @type {string}
+       */
+      socketId: { type: String },
+      /**
+       * messages state
+       *
+       * @type {array}
+       */
+      messagesData: { type: Array },
     };
   }
 
@@ -27,45 +53,60 @@ export class ChatContainer extends LitElement {
     super();
     this.name = '';
     this.message = '';
+    this.messageToResponse = '';
+    this.idToResponse = '';
+    this.socketId = '';
+    this.messagesData = [];
     this.socket = io('http://localhost:3000', {
       extraHeaders: {
         'Access-Control-Allow-Origin': '*',
       },
     });
-    this.socket.on('new connection', console.log);
+    this.socket.on('new connection', id => ((this.socketId = id), console.log('new connection')));
+
+    // Handle Output
+    const output = data => {
+      this.messagesData = [...this.messagesData, data];
+    };
+
+    this.socket.on('output', output);
+
+    const response = data => {
+      const messageEl = this.shadowRoot.getElementById(`${data.messageToResponse}`);
+      const newResponse = document.createElement('div');
+      newResponse.innerText = data.message;
+      newResponse.className = 'response';
+
+      messageEl.appendChild(newResponse);
+    };
+
+    this.socket.on('response', response);
   }
 
   static styles = [style];
 
+  clickToResponse(message, id) {
+    console.log('click', message, id);
+    this.idToResponse = id;
+    this.messageToResponse = message;
+  }
+
   socketSend() {
-    const { name, message, socket } = this;
+    const { name, message, socket, idToResponse } = this;
+    this.message = '';
+    this.messageToResponse = '';
+    this.idToResponse = '';
 
     socket.emit('input', {
       name,
       message,
+      messageToResponse: idToResponse,
     });
-
-    if (socket != undefined) {
-      // Handle Output
-      const listener = data => {
-        if (Object.entries(data).length) {
-          console.log(data);
-
-          const newElement = document.createElement('div');
-          newElement.innerText = data.name;
-          document.body.appendChild(newElement);
-        }
-      };
-
-      socket.on('output', listener);
-    }
   }
 
   handleKeydown(event) {
     if (event.key === 'Enter' && event.shiftKey == false) {
-      console.log('event');
-
-      // this.socketSend();
+      this.socketSend();
 
       event.preventDefault();
     }
@@ -82,32 +123,68 @@ export class ChatContainer extends LitElement {
 
     window.removeEventListener('keydown', this.handleKeydown.bind(this));
   }
+  removeMessageToAnswer() {
+    this.messageToResponse = '';
+    this.idToResponse = '';
+  }
 
   render() {
-    console.log(this.data);
-    return html` <div>
+    const { messageToResponse, message } = this;
+
+    return html` <div
+      style="background:#f5f7fb;
+    padding: 2rem 0;
+    box-sizing: border-box;    height: 100vh;
+    
+  
+    "
+    >
       <div class="container">
-        <input
-          @change=${e => (this.name = e.target.value)}
-          type="text"
-          id="username"
-          class="form-control"
-          placeholder="Enter name..."
-        />
-        <br />
-        <div class="card">
-          <div id="messages" class="card-block"></div>
+        <div class="message-list">
+          ${this.messagesData.map(m => {
+            // console.log(m);
+            return html`
+              <message-card
+                theme=${m.socketId === this.socket.id ? 'message my-message' : 'message'}
+              >
+                ${m.messageData.message}
+              </message-card>
+            `;
+          })}
         </div>
-        <br />
-        <input
-          @change=${e => (this.message = e.target.value)}
-          placeholder="Enter message..."
-          class="chat-input"
-        />
-        <button @click=${this.socketSend} class="chat-button">send</button>
+
+        <div class="input-container">
+          <input
+            .value=${message}
+            @input=${e => (this.message = e.target.value)}
+            placeholder="Type a message"
+            class="chat-input"
+            id="message-input"
+          />
+          <button @click=${this.socketSend} class="chat-button">${sendIcon}</button>
+        </div>
       </div>
     </div>`;
   }
 }
 
 window.customElements.define('chat-container', ChatContainer);
+
+{
+  /* <input
+@change=${e => (this.name = e.target.value)}
+type="text"
+id="username"
+class="form-control"
+placeholder="Enter name..."
+/> */
+}
+
+{
+  /* <div class="message-response ">
+          <div>${messageToResponse}</div>
+          <div class="clos" @click=${this.removeMessageToAnswer}>
+            ${messageToResponse ? 'x' : ''}
+          </div>
+        </div> */
+}

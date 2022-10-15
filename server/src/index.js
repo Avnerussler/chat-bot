@@ -2,7 +2,7 @@ import express from 'express';
 import httpServer from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
-import { MongoClient, ServerApiVersion } from 'mongodb';
+import { MongoClient, ObjectId, ServerApiVersion } from 'mongodb';
 
 const app = express();
 
@@ -51,26 +51,33 @@ io.on('connection', socket => {
     socket.emit('status', s);
   };
   // Handle input events
-  socket.on('input', data => {
-    const { message, name } = data;
+  socket.on('input', messageData => {
+    const { message, name, messageToResponse } = messageData;
 
     // Check for name and message
-    if (name == '' || message == '') {
+    if (message === '') {
       // Send error status
       sendStatus('Please enter a name and message');
     } else {
       // Insert message
-      collection.insertOne({ name: name, message: message }, () => {
-        console.log(data, socket.id);
-        io.emit('output', data);
-        // Send status object
-        sendStatus({
-          message: 'Message sent',
-          clear: true,
+      if (messageToResponse) {
+        collection
+          .findOneAndUpdate({ _id: ObjectId(messageToResponse) }, { $push: { response: message } })
+          .then(res => {
+            io.emit('response', { messageToResponse, message });
+          });
+      } else {
+        collection.insertOne({ name: name, message: message, response: [] }).then(res => {
+          io.emit('output', { messageData, id: res.insertedId, socketId: socket.id });
+          // Send status object
+          sendStatus({
+            message: 'Message sent',
+            clear: true,
+          });
         });
-      });
+      }
     }
   });
 
-  io.emit('new connection', 'new connection');
+  io.emit('new connection', socket.id);
 });
