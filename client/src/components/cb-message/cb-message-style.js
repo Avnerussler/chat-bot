@@ -8,7 +8,7 @@ export const style = css`
     width: 40%;
     padding: 1rem;
     margin: 0.3rem 0;
-    cursor: pointer;
+
     position: relative;
   }
 
@@ -21,8 +21,7 @@ export const style = css`
 
   .replay {
     position: absolute;
-    right: 0;
-    top: -24px;
-    z-index: 10;
+    right: 10px;
+    cursor: pointer;
   }
 `;

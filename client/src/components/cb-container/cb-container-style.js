@@ -1,51 +1,24 @@
 import { css } from 'lit';
 
 export const style = css`
-  .close {
-    display: none;
-  }
-
-  .open {
-    display: block;
-    background: red;
-    height: 30rem;
-    width: 17rem;
-    bottom: 95px;
-    right: 20px;
-    position: absolute;
-  }
-
   .container {
     display: flex;
     justify-content: space-between;
     flex-direction: column;
     height: 100%;
-    width: 66%;
+    width: 50%;
     margin: 0 auto;
     background: white;
     padding: 1.5rem 2rem;
     border-radius: 2rem;
     box-sizing: border-box;
+    position: relative;
   }
 
-  .chat-button {
-    width: 10%;
-    background: #3ca48b;
-    border: none;
-
-    padding: 0.5rem 0;
-    border-radius: 7px;
-    display: flex;
-    justify-content: center;
-  }
-
-  .chat-input {
-    width: 80%;
-    padding: 0.5rem 1rem;
-
-    background: #f5f7fb;
-    border-radius: 7px;
-    border: none;
+  @media screen and (max-width: 1000px) {
+    .container {
+      width: 90%;
+    }
   }
 
   .message-list {
@@ -60,7 +33,7 @@ export const style = css`
 
   .input-container {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
   }
 
   .message-response {

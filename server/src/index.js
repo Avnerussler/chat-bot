@@ -52,7 +52,7 @@ io.on('connection', socket => {
   };
   // Handle input events
   socket.on('input', messageData => {
-    const { message, name, messageToResponse } = messageData;
+    const { message, name, replayToMessage } = messageData;
 
     // Check for name and message
     if (message === '') {
@@ -60,11 +60,11 @@ io.on('connection', socket => {
       sendStatus('Please enter a name and message');
     } else {
       // Insert message
-      if (messageToResponse) {
+      if (replayToMessage) {
         collection
-          .findOneAndUpdate({ _id: ObjectId(messageToResponse) }, { $push: { response: message } })
+          .findOneAndUpdate({ _id: ObjectId(replayToMessage) }, { $push: { response: message } })
           .then(res => {
-            io.emit('response', { messageToResponse, message });
+            io.emit('response', { replayToMessage, message });
           });
       } else {
         collection.insertOne({ name: name, message: message, response: [] }).then(res => {
