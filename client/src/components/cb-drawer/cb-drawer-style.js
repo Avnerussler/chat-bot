@@ -16,7 +16,7 @@ export const style = css`
     flex-direction: column;
   }
 
-  :host([isopen]) {
+  :host([is-drawer]) {
     transition: margin-right 300ms ease-in-out;
     opacity: 1;
     margin-right: 0;

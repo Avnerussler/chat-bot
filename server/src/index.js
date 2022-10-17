@@ -52,32 +52,42 @@ io.on('connection', socket => {
   };
   // Handle input events
   socket.on('input', messageData => {
-    const { message, name, replayToMessage } = messageData;
+    const { message, name, replayToMessage, replayText } = messageData;
 
-    // Check for name and message
-    if (message === '') {
-      // Send error status
-      sendStatus('Please enter a name and message');
-    } else {
-      // Insert message
-      if (replayToMessage) {
-        collection
-          .findOneAndUpdate({ _id: ObjectId(replayToMessage) }, { $push: { response: message } })
-          .then(res => {
-            io.emit('response', { replayToMessage, message });
+    // Insert message
+    if (replayToMessage) {
+      collection
+        .findOneAndUpdate({ _id: ObjectId(replayToMessage) }, { $push: { response: replayText } })
+        .then(res => {
+          io.emit('response', {
+            replayToMessage,
+            replayText,
+            socketId: socket.id,
+            response: res.value.response,
           });
-      } else {
-        collection.insertOne({ name: name, message: message, response: [] }).then(res => {
-          io.emit('output', { messageData, id: res.insertedId, socketId: socket.id });
+
           // Send status object
           sendStatus({
-            message: 'Message sent',
+            message: 'Response sent',
             clear: true,
           });
         });
+    } else {
+      // Check for the message
+      if (message === '') {
+        sendStatus('Please enter a message');
       }
+
+      collection.insertOne({ name: name, message, response: [] }).then(res => {
+        io.emit('output', { message, name, id: res.insertedId, socketId: socket.id });
+        // Send status object
+        sendStatus({
+          message: 'Message sent',
+          clear: true,
+        });
+      });
     }
   });
 
-  io.emit('new connection', socket.id);
+  // io.emit('new connection', 'new connection');
 });

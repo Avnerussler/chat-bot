@@ -1,7 +1,8 @@
 import { LitElement, html } from 'lit';
 import { style } from './cb-message-style';
 import { messageIcon } from '../../icons/message-icon';
-export class CbMessage extends LitElement {
+import { CbMixin } from '../../mixins/cb-mixin';
+export class CbMessage extends CbMixin(LitElement) {
   static get properties() {
     return {
       /**
@@ -30,9 +31,7 @@ export class CbMessage extends LitElement {
   }
 
   static styles = [style];
-
-  handleReplay(event) {
-    event.stopPropagation();
+  handleOpenDrawer() {
     const drawerEvent = new CustomEvent('openDrawer', {
       detail: {
         messageId: this.id,
@@ -49,7 +48,7 @@ export class CbMessage extends LitElement {
     const { theme, text } = this;
     return html`
       <div class=${theme}>
-        <div class="replay" @click=${this.handleReplay}>${messageIcon}</div>
+        <div class="replay" @click=${this.handleOpenDrawer}>${messageIcon}</div>
         ${text}
       </div>
     `;

@@ -4,42 +4,61 @@ import { style } from './cb-drawer-style';
 import '../cb-input/cb-input';
 import '../cb-button/cb-button';
 import { sendIcon } from '../../icons/sendIcon';
-export class CbDrawer extends LitElement {
+import { CbMixin } from '../../mixins/cb-mixin';
+export class CbDrawer extends CbMixin(LitElement) {
   static get properties() {
     return {
       /**
-       * Is drawer open.
+       * Is drawer open or close.
+       *
        * @type {boolean}
        */
-      isOpen: { type: Boolean, attribute: true, reflect: true },
+      isDrawer: { attribute: 'is-drawer', type: Boolean },
       /**
        * drawer header.
        * @type {string}
        */
       header: { type: String, attribute: true },
-      /**
-       * Id of message to replay
-       * @type {string}
-       */
-      messageId: { type: String, attribute: true },
+
       /**
        * input value
        * @type {string}
        */
       value: { type: String, attribute: false },
+      /**
+       * input value
+       * @type {array}
+       */
+      responses: { type: Array, attribute: false },
+      /**
+       * input value
+       * @type {string}
+       */
+      socketId: { attribute: 'socket-id', type: String, attribute: false },
     };
   }
 
   constructor() {
     super();
-    this.isOpen = false;
-    this.header = '';
+    this.value = '';
   }
 
   static styles = [style];
 
-  handleClose() {
-    this.isOpen = false;
+  handleSendReplay() {
+    const replay = new CustomEvent('replay', {
+      detail: {
+        replayText: this.value,
+      },
+      bubbles: true,
+      composed: true,
+    });
+    this.value = '';
+    this.replayText = this.value;
+    this.dispatchEvent(replay);
+  }
+
+  handleCloseDrawer() {
     const drawerEvent = new CustomEvent('closeDrawer', {
       bubbles: true,
       composed: true,
@@ -47,30 +66,33 @@ export class CbDrawer extends LitElement {
 
     this.dispatchEvent(drawerEvent);
   }
+  // connectedCallback() {
+  //   super.connectedCallback();
 
-  handleSendReplay() {
-    const replay = new CustomEvent('replay', {
-      detail: {
-        replayText: this.value,
-        replayToMessage: this.messageId,
-      },
-      bubbles: true,
-      composed: true,
-    });
-    this.dispatchEvent(replay);
-  }
+  //
+  // }
+
+  // disconnectedCallback() {
+  //   super.disconnectedCallback();
+  //   window.removeEventListener('keydown', this.handleKeydown.bind(this));
+  // }
+
   render() {
     const { header, handleSendReplay } = this;
 
     return html`
       <div class="header">
-        <cb-button @click=${this.handleClose.bind(this)}>${closeIcon}</cb-button>
+        <cb-button @click=${this.handleCloseDrawer}>${closeIcon}</cb-button>
         <label> ${header}</label>
       </div>
+
+      <slot></slot>
+
       <div class="input-container">
         <cb-input
           @input=${e => (this.value = e.target.value)}
           placeholder="Replay to message"
+          .value=${this.value}
         ></cb-input>
         <cb-button @click=${handleSendReplay}> ${sendIcon} </cb-button>
       </div>
