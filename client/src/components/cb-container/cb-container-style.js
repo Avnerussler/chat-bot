@@ -1,7 +1,20 @@
 import { css } from 'lit';
 
 export const style = css`
+  :host {
+    --green-color: #3ca48b;
+    --gray-background: #f5f7fb;
+  }
+
   .container {
+    background: var(--gray-background);
+    padding: 2rem 0;
+    box-sizing: border-box;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .chat-container {
     display: flex;
     justify-content: space-between;
     flex-direction: column;
@@ -16,7 +29,7 @@ export const style = css`
   }
 
   @media screen and (max-width: 1000px) {
-    .container {
+    .chat-container {
       width: 90%;
     }
   }
@@ -50,7 +63,7 @@ export const style = css`
 
   .header {
     padding: 1rem 0;
-    background: #3ca48b;
+    background-color: var(--green-color);
     position: absolute;
     width: 100%;
     left: 0;

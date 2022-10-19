@@ -2,6 +2,8 @@ import { css } from 'lit';
 
 export const style = css`
   :host {
+    --green-color: #3ca48b;
+
     backdrop-filter: blur(10px);
     position: absolute;
     right: 0;
@@ -22,7 +24,7 @@ export const style = css`
   }
 
   .header {
-    background: #3ca38b;
+    background: var(--green-color);
     border-radius: 0px 2rem 0px 0px;
     display: flex;
     align-items: center;

@@ -40,8 +40,10 @@ export class CbContainer extends CbMixin(LitElement) {
     super();
     this.name = '';
     this.message = '';
+    this.responses = [];
+
     (async () => {
-      this.messagesData = await this.getCall('getAllMessages');
+      this.messagesData = await this.getRequest('getAllMessages');
     })();
 
     this.socket = io('http://localhost:3000', {
@@ -49,12 +51,12 @@ export class CbContainer extends CbMixin(LitElement) {
         'Access-Control-Allow-Origin': '*',
       },
     });
-    this.responses = [];
     this.socket.on('new connection', console.log('new connection'));
 
     const output = data => {
       this.messagesData = [...this.messagesData, data];
     };
+
     this.socket.on('output', output);
 
     const response = data => {
@@ -88,32 +90,25 @@ export class CbContainer extends CbMixin(LitElement) {
 
   async handleOpenDrawer(event) {
     const { messageId, messageText } = event.detail;
+
     this.messageToResponse = { messageId, messageText };
     this.isDrawer = true;
 
-    const result = await this.getCall(`getResponse/${messageId}`);
+    const result = await this.getRequest(`getResponse/${messageId}`);
     this.responses = result[0].response;
     this.requestUpdate();
   }
 
   handleRate(event) {
-    const { responseId } = event.detail;
-    this.rateResponse(responseId);
+    this.rateResponse(event.detail);
   }
 
   render() {
     const { message, isDrawer, messageToResponse, handleReplay, sendMessage } = this;
 
     return html`
-      <div
-        style="background:#f5f7fb;
-                padding: 2rem 0;
-                box-sizing: border-box;
-                height: 100vh;
-                overflow: hidden;
-                "
-      >
-        <div class="container">
+      <div class="container">
+        <div class="chat-container">
           <div class="header">Chat-Bot</div>
           <div class="message-list messages">
             ${this.messagesData

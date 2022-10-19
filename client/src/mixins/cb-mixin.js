@@ -8,17 +8,20 @@ export const CbMixin = superClass =>
       this.messageToResponse = { messageText: '', messageId: '' };
     }
 
-    handleSendReplay() {
-      const replay = new CustomEvent('replay', {
-        detail: {
-          replayText: this.value,
-        },
+    dispatcher(name, data) {
+      const event = new CustomEvent(name, {
+        detail: data,
         bubbles: true,
         composed: true,
       });
+
+      this.dispatchEvent(event);
+    }
+
+    handleSendReplay() {
+      this.dispatcher('replay', { replayText: this.value });
       this.value = '';
       this.replayText = this.value;
-      this.dispatchEvent(replay);
     }
 
     handleKeydown(event, type) {
@@ -49,7 +52,7 @@ export const CbMixin = superClass =>
       });
     }
 
-    getCall = async endPoint => {
+    getRequest = async endPoint => {
       const result = await fetch(`http://localhost:3000/${endPoint}`);
 
       return result.json();

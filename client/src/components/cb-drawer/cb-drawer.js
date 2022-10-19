@@ -46,12 +46,7 @@ export class CbDrawer extends CbMixin(LitElement) {
   static styles = [style];
 
   handleCloseDrawer() {
-    const drawerEvent = new CustomEvent('closeDrawer', {
-      bubbles: true,
-      composed: true,
-    });
-
-    this.dispatchEvent(drawerEvent);
+    this.dispatcher('closeDrawer');
   }
 
   render() {

@@ -97,94 +97,103 @@ const sandResponse = async (replayToMessage, replayText, socket) => {
 
 io.on('connection', socket => {
   console.log('new connection', socket.id);
+  try {
+    // Handle input events
+    socket.on('input', async messageData => {
+      const { message, name, replayToMessage, replayText } = messageData;
 
-  // Handle input events
-  socket.on('input', async messageData => {
-    const { message, name, replayToMessage, replayText } = messageData;
+      // Insert message
+      if (replayToMessage) {
+        sandResponse(replayToMessage, replayText, socket);
+      } else {
+        // Check for the message
+        if (message === '') {
+          // sendStatus('Please enter a message');
+          return;
+        }
 
-    // Insert message
-    if (replayToMessage) {
-      sandResponse(replayToMessage, replayText, socket);
-    } else {
-      // Check for the message
-      if (message === '') {
-        // sendStatus('Please enter a message');
-        return;
-      }
+        chatCollection.insertOne({ name, message, response: [] }).then(async res => {
+          // Creating Index type text for text search in message field
+          await chatCollection.createIndex({ message: 'text' });
 
-      chatCollection.insertOne({ name: name, message, response: [] }).then(async res => {
-        // Creating Index type text for text search in message field
-        await chatCollection.createIndex({ message: 'text' });
+          const findSimilarQA = await chatCollection
+            .aggregate([
+              //Find a question that match the current question
+              { $match: { $text: { $search: message } } },
 
-        const findSimilarQA = await chatCollection
-          .aggregate([
-            //Find a question that match the current question
-            { $match: { $text: { $search: message } } },
-
-            //Get the response from the response collection
-            {
-              $lookup: {
-                from: 'response',
-                localField: 'response',
-                foreignField: '_id',
-                as: 'result',
+              //Get the response from the response collection
+              {
+                $lookup: {
+                  from: 'response',
+                  localField: 'response',
+                  foreignField: '_id',
+                  as: 'result',
+                },
               },
-            },
 
-            //Take only "result" and "message" fields
-            {
-              $project: {
-                result: 1,
-                message: 1,
+              //Take only "result" and "message" fields
+              {
+                $project: {
+                  result: 1,
+                  message: 1,
+                },
               },
-            },
 
-            // Get the max "rate" document from the result array (array of response)
-            {
-              $addFields: {
-                maxRate: {
-                  $reduce: {
-                    input: '$result',
-                    initialValue: { rate: 0 },
-                    in: { $cond: [{ $gte: ['$$this.rate', '$$value.rate'] }, '$$this', '$$value'] },
+              // Get the max "rate" document from the result array (array of response)
+              {
+                $addFields: {
+                  maxRate: {
+                    $reduce: {
+                      input: '$result',
+                      initialValue: { rate: 0 },
+                      in: {
+                        $cond: [{ $gte: ['$$this.rate', '$$value.rate'] }, '$$this', '$$value'],
+                      },
+                    },
                   },
                 },
               },
-            },
 
-            // Take only the "maxRate" and "message" fields
-            {
-              $project: {
-                maxRate: 1,
-                message: 1,
+              // Take only the "maxRate" and "message" fields
+              {
+                $project: {
+                  maxRate: 1,
+                  message: 1,
+                },
               },
-            },
 
-            // Sort and take only the max document
-            { $sort: { 'maxRate.rate': -1 } },
-            { $limit: 1 },
-          ])
-          .toArray();
+              // Sort and take only the max document
+              { $sort: { 'maxRate.rate': -1 } },
+              { $limit: 1 },
+            ])
+            .toArray();
 
-        if (findSimilarQA[0].maxRate.rate > 0) {
-          const { replayText } = findSimilarQA[0].maxRate;
-          console.log(findSimilarQA);
-          sandResponse(res.insertedId, replayText, socket);
-        }
+          if (findSimilarQA[0].maxRate.rate > 0) {
+            const { replayText } = findSimilarQA[0].maxRate;
+            console.log(findSimilarQA);
+            sandResponse(res.insertedId, replayText, socket);
+          }
 
-        io.emit('output', { message, name, _id: res.insertedId, socketId: socket.id });
-      });
-    }
-  });
-
+          io.emit('output', { message, name, _id: res.insertedId, socketId: socket.id });
+        });
+      }
+    });
+  } catch (error) {
+    console.log(error);
+  }
   socket.on('rate-input', async data => {
-    const responseUpdate = await responseCollection.findOneAndUpdate(
-      { _id: ObjectId(data.responseId) },
-      { $inc: { rate: 1 } }
-    );
+    try {
+      console.log('id', data.responseId);
+      const responseUpdate = await responseCollection.findOneAndUpdate(
+        { _id: ObjectId(data.responseId) },
+        { $inc: { rate: 1 } }
+      );
 
-    responseUpdate.value['rate'] = responseUpdate.value['rate'] + 1;
+      responseUpdate.value['rate'] = responseUpdate.value['rate'] + 1;
 
-    io.emit('rate-output', responseUpdate.value);
+      io.emit('rate-output', responseUpdate.value);
+    } catch (error) {
+      console.error(error);
+    }
   });
 });

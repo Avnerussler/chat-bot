@@ -50,28 +50,11 @@ export class CbMessage extends CbMixin(LitElement) {
   static styles = [style];
 
   handleOpenDrawerEvent() {
-    const drawerEvent = new CustomEvent('openDrawer', {
-      detail: {
-        messageId: this.id,
-        messageText: this.text,
-      },
-      bubbles: true,
-      composed: true,
-    });
-
-    this.dispatchEvent(drawerEvent);
+    this.dispatcher('openDrawer', { messageId: this.id, messageText: this.text });
   }
 
   handleRateEvent() {
-    const rateEvent = new CustomEvent('rateEvent', {
-      detail: {
-        responseId: this.id,
-      },
-      bubbles: true,
-      composed: true,
-    });
-
-    this.dispatchEvent(rateEvent);
+    this.dispatcher('rateEvent', this.id);
   }
 
   render() {
