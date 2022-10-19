@@ -14,6 +14,7 @@ export const style = css`
     display: flex;
     justify-content: space-between;
     flex-direction: column;
+    z-index: 3;
   }
 
   :host([is-drawer]) {

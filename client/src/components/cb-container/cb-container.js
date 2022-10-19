@@ -8,9 +8,6 @@ import { sendIcon } from '../../icons/sendIcon';
 import { CbMixin } from '../../mixins/cb-mixin';
 import { io } from 'https://cdn.socket.io/4.4.1/socket.io.esm.min.js';
 
-// store => data
-// helper functions => add message update state AND update DOM
-
 // https://dribbble.com/shots/16507884-Chatbot/attachments/11477943?mode=media
 export class CbContainer extends CbMixin(LitElement) {
   static get properties() {
@@ -25,12 +22,6 @@ export class CbContainer extends CbMixin(LitElement) {
        * @type {string}
        */
       name: { type: String, state: true },
-      // /**
-      //  * The current socket
-      //  *
-      //  * @type {string}
-      //  */
-      // socketId: { type: String },
       /**
        * messages state
        *
@@ -49,7 +40,6 @@ export class CbContainer extends CbMixin(LitElement) {
     super();
     this.name = '';
     this.message = '';
-    // this.socketId = '';
     this.messagesData = [];
     this.socket = io('http://localhost:3000', {
       extraHeaders: {
@@ -69,6 +59,14 @@ export class CbContainer extends CbMixin(LitElement) {
     };
 
     this.socket.on('response', response);
+
+    this.socket.on('update-messages', data => {
+      this.updateState(this.messagesData, data.messageToUpdate, 'response', data.response);
+    });
+
+    this.socket.on('rate-output', data => {
+      this.updateState(this.responses, data._id, 'rate', data.rate);
+    });
   }
 
   static styles = [style];
@@ -92,6 +90,11 @@ export class CbContainer extends CbMixin(LitElement) {
     this.isDrawer = true;
 
     this.requestUpdate();
+  }
+
+  handleRate(event) {
+    const { responseId } = event.detail;
+    this.rateResponse(responseId);
   }
 
   connectedCallback() {
@@ -118,6 +121,7 @@ export class CbContainer extends CbMixin(LitElement) {
                 "
       >
         <div class="container">
+          <div class="header">Chat-Bot</div>
           <div class="message-list">
             ${this.messagesData.map(
               m =>
@@ -127,6 +131,7 @@ export class CbContainer extends CbMixin(LitElement) {
                     id=${m.id}
                     text=${m.message}
                     @openDrawer=${this.handleOpenDrawer}
+                    response=${m.response}
                   >
                   </cb-message>
                 `
@@ -153,8 +158,12 @@ export class CbContainer extends CbMixin(LitElement) {
               ${this.responses.map(m => {
                 return html`
                   <cb-message
+                    is-response
+                    id=${m.id}
                     theme=${m.socketId === this.socket.id ? 'message my-message' : 'message'}
                     text=${m.replayText}
+                    @rateEvent=${this.handleRate}
+                    rate=${m.rate}
                   >
                   </cb-message>
                 `;

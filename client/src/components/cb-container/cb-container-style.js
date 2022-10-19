@@ -9,7 +9,7 @@ export const style = css`
     width: 50%;
     margin: 0 auto;
     background: white;
-    padding: 1.5rem 2rem;
+    padding: 0 1.5rem 2rem;
     border-radius: 2rem;
     box-sizing: border-box;
     position: relative;
@@ -23,6 +23,7 @@ export const style = css`
 
   .message-list {
     overflow: scroll;
+    margin-top: 4.3rem;
   }
   .response {
     background: white;
@@ -32,6 +33,7 @@ export const style = css`
   }
 
   .input-container {
+    padding-top: 2rem;
     display: flex;
     justify-content: space-between;
   }
@@ -40,6 +42,17 @@ export const style = css`
     display: flex;
   }
 
-  .close {
+  .header {
+    padding: 1rem 0;
+    background: #3ca48b;
+    position: absolute;
+    width: 100%;
+    left: 0;
+    z-index: 1;
+    border-radius: 2rem 2rem 0 0;
+    text-align: center;
+    font-family: 'Varela Round', sans-serif;
+    color: white;
+    font-size: 30px;
   }
 `;

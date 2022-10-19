@@ -32,6 +32,20 @@ export const CbMixin = superClass =>
       });
     }
 
+    rateResponse(responseId) {
+      const { socket } = this;
+      socket.emit('rate-input', {
+        responseId: responseId,
+      });
+    }
+
+    updateState(state, id, fieldToUpdate, updateTo) {
+      const objIndex = state.findIndex(obj => obj.id == id);
+      state[objIndex][fieldToUpdate] = updateTo;
+      this.requestUpdate();
+      window.scrollTo({ top: 0 });
+    }
+
     updated(changedProperties) {
       super.updated?.(changedProperties);
 

@@ -20,18 +20,35 @@ export class CbMessage extends CbMixin(LitElement) {
        * @type {string}
        */
       id: { type: String },
+      /**
+       * The number of the response .
+       * @type {number}
+       */
+      response: { type: Number, attribute: true },
+      /**
+       * The type of the message.
+       * @type {boolean}
+       */
+      isResponse: { type: Boolean, attribute: 'is-response' },
+      /**
+       * The number of the rate for this message .
+       * @type {number}
+       */
+      rate: { type: Number, attribute: true },
     };
   }
 
   constructor() {
     super();
+    this.response = 0;
     this.theme = '';
     this.text = '';
     this.id = '';
   }
 
   static styles = [style];
-  handleOpenDrawer() {
+
+  handleOpenDrawerEvent() {
     const drawerEvent = new CustomEvent('openDrawer', {
       detail: {
         messageId: this.id,
@@ -44,16 +61,34 @@ export class CbMessage extends CbMixin(LitElement) {
     this.dispatchEvent(drawerEvent);
   }
 
+  handleRateEvent() {
+    const rateEvent = new CustomEvent('rateEvent', {
+      detail: {
+        responseId: this.id,
+      },
+      bubbles: true,
+      composed: true,
+    });
+
+    this.dispatchEvent(rateEvent);
+  }
+
   render() {
-    const { theme, text } = this;
+    const { theme, text, isResponse, rate } = this;
     return html`
       <div class=${theme}>
-        <div class="replay" @click=${this.handleOpenDrawer}>${messageIcon}</div>
-        ${text}
+        <div class="replay" @click=${this.handleOpenDrawerEvent}>
+          ${!isResponse ? messageIcon : ''}
+        </div>
+        <div>${text}</div>
+        ${!isResponse && this.response > 0
+          ? html` <div>There is ${this.response} responses</div>`
+          : ''}
+        ${isResponse ? html`<button @click=${this.handleRateEvent}>+1</button>` : ''}
+        <div>${rate}</div>
       </div>
     `;
   }
 }
 
 window.customElements.define('cb-message', CbMessage);
-// @click=${() => this.clickToResponse(m.messageData.message, m.id)}
