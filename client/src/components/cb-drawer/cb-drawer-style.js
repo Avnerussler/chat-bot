@@ -8,9 +8,7 @@ export const style = css`
     height: 100%;
     top: 0;
     border-radius: 0 2rem 2rem 0;
-    width: 20rem;
-    opacity: 0;
-    margin-right: -20rem;
+    width: 0;
     display: flex;
     justify-content: space-between;
     flex-direction: column;
@@ -18,9 +16,9 @@ export const style = css`
   }
 
   :host([is-drawer]) {
-    transition: margin-right 300ms ease-in-out;
-    opacity: 1;
-    margin-right: 0;
+    transition: width 200ms ease-in-out;
+
+    width: 20rem;
   }
 
   .header {

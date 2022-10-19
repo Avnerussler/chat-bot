@@ -44,6 +44,29 @@ app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
+app.get('/getAllMessages', async (req, res) => {
+  const result = await chatCollection.find().toArray();
+  res.send(result);
+});
+
+app.get('/getResponse/:id', async (req, res) => {
+  const { id } = req.params;
+  const result = await chatCollection
+    .aggregate([
+      { $match: { _id: ObjectId(id) } },
+      {
+        $lookup: {
+          from: 'response',
+          localField: 'response',
+          foreignField: '_id',
+          as: 'response',
+        },
+      },
+    ])
+    .toArray();
+  res.send(result);
+});
+
 const sandResponse = async (replayToMessage, replayText, socket) => {
   const newResponse = await responseCollection.insertOne({
     replayToMessage: ObjectId(replayToMessage),
@@ -55,30 +78,22 @@ const sandResponse = async (replayToMessage, replayText, socket) => {
     { _id: ObjectId(replayToMessage) },
     { $push: { response: newResponse.insertedId } }
   );
+
   io.emit('response', {
     replayToMessage,
     replayText,
     socketId: socket.id,
     response: updateChat.value.response,
-    id: newResponse.insertedId,
+    _id: newResponse.insertedId,
   });
 
+  const updateOfResponse = updateChat.value.response;
+  updateOfResponse.push(newResponse.insertedId);
   io.emit('update-messages', {
     messageToUpdate: replayToMessage,
-    response: updateChat.value.response.length + 1,
+    response: updateOfResponse,
   });
-
-  // // Send status object
-  // sendStatus({
-  //   message: 'Response sent',
-  //   clear: true,
-  // });
 };
-
-// Create function to send status
-// const sendStatus = s => {
-//   socket.emit('status', s);
-// };
 
 io.on('connection', socket => {
   console.log('new connection', socket.id);
@@ -157,12 +172,7 @@ io.on('connection', socket => {
           sandResponse(res.insertedId, replayText, socket);
         }
 
-        io.emit('output', { message, name, id: res.insertedId, socketId: socket.id });
-        // Send status object
-        // sendStatus({
-        //   message: 'Message sent',
-        //   clear: true,
-        // });
+        io.emit('output', { message, name, _id: res.insertedId, socketId: socket.id });
       });
     }
   });
@@ -172,10 +182,9 @@ io.on('connection', socket => {
       { _id: ObjectId(data.responseId) },
       { $inc: { rate: 1 } }
     );
+
     responseUpdate.value['rate'] = responseUpdate.value['rate'] + 1;
 
     io.emit('rate-output', responseUpdate.value);
   });
-
-  // io.emit('new connection', 'new connection');
 });

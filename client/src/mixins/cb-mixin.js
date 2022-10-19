@@ -49,17 +49,25 @@ export const CbMixin = superClass =>
       });
     }
 
+    getCall = async endPoint => {
+      const result = await fetch(`http://localhost:3000/${endPoint}`);
+
+      return result.json();
+    };
+
     rateResponse(responseId) {
       const { socket } = this;
+
       socket.emit('rate-input', {
         responseId: responseId,
       });
     }
 
     updateState(state, id, fieldToUpdate, updateTo) {
-      const objIndex = state.findIndex(obj => obj.id == id);
+      const objIndex = state.findIndex(obj => obj._id == id);
+      console.log(state, id);
       state[objIndex][fieldToUpdate] = updateTo;
+
       this.requestUpdate();
-      window.scrollTo({ top: 0 });
     }
   };

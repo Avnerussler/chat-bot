@@ -53,16 +53,6 @@ export class CbDrawer extends CbMixin(LitElement) {
 
     this.dispatchEvent(drawerEvent);
   }
-  // connectedCallback() {
-  //   super.connectedCallback();
-
-  //
-  // }
-
-  // disconnectedCallback() {
-  //   super.disconnectedCallback();
-  //   window.removeEventListener('keydown', this.handleKeydown.bind(this));
-  // }
 
   render() {
     const { header, handleSendReplay } = this;

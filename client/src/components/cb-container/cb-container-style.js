@@ -23,8 +23,14 @@ export const style = css`
 
   .message-list {
     overflow: scroll;
+
+    height: 100%;
+  }
+
+  .messages {
     margin-top: 5.5rem;
   }
+
   .response {
     background: white;
     border-radius: 7px;

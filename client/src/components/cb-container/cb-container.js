@@ -40,7 +40,10 @@ export class CbContainer extends CbMixin(LitElement) {
     super();
     this.name = '';
     this.message = '';
-    this.messagesData = [];
+    (async () => {
+      this.messagesData = await this.getCall('getAllMessages');
+    })();
+
     this.socket = io('http://localhost:3000', {
       extraHeaders: {
         'Access-Control-Allow-Origin': '*',
@@ -65,7 +68,7 @@ export class CbContainer extends CbMixin(LitElement) {
     });
 
     this.socket.on('rate-output', data => {
-      this.updateState(this.responses, data._id, 'rate', data.rate);
+      this.updateState(this.responses, data?._id, 'rate', data.rate);
     });
   }
 
@@ -83,12 +86,13 @@ export class CbContainer extends CbMixin(LitElement) {
     this.requestUpdate();
   }
 
-  handleOpenDrawer(event) {
+  async handleOpenDrawer(event) {
     const { messageId, messageText } = event.detail;
     this.messageToResponse = { messageId, messageText };
-
     this.isDrawer = true;
 
+    const result = await this.getCall(`getResponse/${messageId}`);
+    this.responses = result[0].response;
     this.requestUpdate();
   }
 
@@ -111,20 +115,22 @@ export class CbContainer extends CbMixin(LitElement) {
       >
         <div class="container">
           <div class="header">Chat-Bot</div>
-          <div class="message-list">
-            ${this.messagesData.map(
-              m =>
-                html`
-                  <cb-message
-                    theme=${m.socketId === this.socket.id ? 'message my-message' : 'message'}
-                    id=${m.id}
-                    text=${m.message}
-                    @openDrawer=${this.handleOpenDrawer}
-                    response=${m.response}
-                  >
-                  </cb-message>
-                `
-            )}
+          <div class="message-list messages">
+            ${this.messagesData
+              ? this.messagesData.map(
+                  m =>
+                    html`
+                      <cb-message
+                        theme=${m.socketId === this.socket.id ? 'message my-message' : 'message'}
+                        id=${m._id}
+                        text=${m.message}
+                        @openDrawer=${this.handleOpenDrawer}
+                        response=${m.response?.length}
+                      >
+                      </cb-message>
+                    `
+                )
+              : html`<div>Loading....</div>`}
           </div>
 
           <div class="input-container">
@@ -146,16 +152,19 @@ export class CbContainer extends CbMixin(LitElement) {
           >
             <div class="message-list">
               ${this.responses.map(m => {
+                /*Show response only for this message*/
                 return html`
-                  <cb-message
-                    is-response
-                    id=${m.id}
-                    theme=${m.socketId === this.socket.id ? 'message my-message' : 'message'}
-                    text=${m.replayText}
-                    @rateEvent=${this.handleRate}
-                    rate=${m.rate}
-                  >
-                  </cb-message>
+                  ${m.replayToMessage === messageToResponse.messageId
+                    ? html` <cb-message
+                        is-response
+                        id=${m._id}
+                        theme=${m.socketId === this.socket.id ? 'message my-message' : 'message'}
+                        text=${m.replayText}
+                        @rateEvent=${this.handleRate}
+                        rate=${m.rate}
+                      >
+                      </cb-message>`
+                    : ''}
                 `;
               })}
             </div>
