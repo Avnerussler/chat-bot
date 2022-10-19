@@ -2,6 +2,7 @@ import { LitElement, html } from 'lit';
 import { style } from './cb-message-style';
 import { messageIcon } from '../../icons/message-icon';
 import { CbMixin } from '../../mixins/cb-mixin';
+import '../cb-button/cb-button';
 export class CbMessage extends CbMixin(LitElement) {
   static get properties() {
     return {
@@ -77,15 +78,19 @@ export class CbMessage extends CbMixin(LitElement) {
     const { theme, text, isResponse, rate } = this;
     return html`
       <div class=${theme}>
+        ${isResponse
+          ? html`<cb-button color="white" @click=${this.handleRateEvent}>+1</cb-button>`
+          : ''}
         <div class="replay" @click=${this.handleOpenDrawerEvent}>
           ${!isResponse ? messageIcon : ''}
         </div>
-        <div>${text}</div>
-        ${!isResponse && this.response > 0
-          ? html` <div>There is ${this.response} responses</div>`
-          : ''}
-        ${isResponse ? html`<button @click=${this.handleRateEvent}>+1</button>` : ''}
-        <div>${rate}</div>
+        <div>
+          <div>${text}</div>
+          ${!isResponse && this.response > 0
+            ? html` <div class="responses">${this.response} responses</div>`
+            : ''}
+          ${isResponse ? html`<div class="rate">Rate: ${rate}</div>` : ''}
+        </div>
       </div>
     `;
   }

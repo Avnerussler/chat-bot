@@ -5,34 +5,20 @@ export class CbButton extends LitElement {
   static get properties() {
     return {
       /**
-       * input content.
+       * The theme of the button.
        * @type {string}
        */
-      value: { type: String },
-      /**
-       * input placeholder.
-       * @type {string}
-       */
-      placeholder: { type: String },
-      /**
-       * Rather input is disabled or not.
-       * @type {boolean}
-       */
-      disabled: { type: Boolean },
+      theme: { type: String, attribute: true },
     };
   }
 
   constructor() {
     super();
-    this.value = '';
-    this.placeholder = 'input..';
-    this.disabled = false;
   }
 
   static styles = [style];
 
   render() {
-    const { disabled, value, placeholder } = this;
     return html`
       <button class="button">
         <slot></slot>

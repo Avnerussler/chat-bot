@@ -94,6 +94,7 @@ io.on('connection', socket => {
       // Check for the message
       if (message === '') {
         // sendStatus('Please enter a message');
+        return;
       }
 
       chatCollection.insertOne({ name: name, message, response: [] }).then(async res => {
@@ -150,9 +151,9 @@ io.on('connection', socket => {
           ])
           .toArray();
 
-        console.log(findSimilarQA);
         if (findSimilarQA[0].maxRate.rate > 0) {
-          const { replayText, rate } = findSimilarQA[0].maxRate;
+          const { replayText } = findSimilarQA[0].maxRate;
+          console.log(findSimilarQA);
           sandResponse(res.insertedId, replayText, socket);
         }
 

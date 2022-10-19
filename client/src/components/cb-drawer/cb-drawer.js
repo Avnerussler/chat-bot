@@ -45,19 +45,6 @@ export class CbDrawer extends CbMixin(LitElement) {
 
   static styles = [style];
 
-  handleSendReplay() {
-    const replay = new CustomEvent('replay', {
-      detail: {
-        replayText: this.value,
-      },
-      bubbles: true,
-      composed: true,
-    });
-    this.value = '';
-    this.replayText = this.value;
-    this.dispatchEvent(replay);
-  }
-
   handleCloseDrawer() {
     const drawerEvent = new CustomEvent('closeDrawer', {
       bubbles: true,
@@ -82,7 +69,7 @@ export class CbDrawer extends CbMixin(LitElement) {
 
     return html`
       <div class="header">
-        <cb-button @click=${this.handleCloseDrawer}>${closeIcon}</cb-button>
+        <cb-button @click=${this.handleCloseDrawer}> ${closeIcon}</cb-button>
         <label> ${header}</label>
       </div>
 
@@ -93,6 +80,7 @@ export class CbDrawer extends CbMixin(LitElement) {
           @input=${e => (this.value = e.target.value)}
           placeholder="Replay to message"
           .value=${this.value}
+          @keydown=${event => this.handleKeydown(event, 'response')}
         ></cb-input>
         <cb-button @click=${handleSendReplay}> ${sendIcon} </cb-button>
       </div>

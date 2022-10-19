@@ -29,6 +29,7 @@ export const style = css`
     display: flex;
     align-items: center;
     font-family: 'Varela Round', sans-serif;
+    color: white;
   }
   .input-container {
     display: flex;

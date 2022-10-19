@@ -7,16 +7,33 @@ export const CbMixin = superClass =>
       this.isDrawer = false;
       this.messageToResponse = { messageText: '', messageId: '' };
     }
-    connectedCallback() {
-      super.connectedCallback();
-      // console.log(`${this.localName} was connected`);
+
+    handleSendReplay() {
+      const replay = new CustomEvent('replay', {
+        detail: {
+          replayText: this.value,
+        },
+        bubbles: true,
+        composed: true,
+      });
+      this.value = '';
+      this.replayText = this.value;
+      this.dispatchEvent(replay);
     }
 
-    handleKeydown(event) {
+    handleKeydown(event, type) {
       if (event.key === 'Enter' && event.shiftKey == false) {
-        this.sendMessage();
+        switch (type) {
+          case 'message':
+            this.sendMessage();
 
-        event.preventDefault();
+            break;
+          case 'response':
+            this.handleSendReplay();
+            break;
+          default:
+            break;
+        }
       }
     }
 
@@ -44,11 +61,5 @@ export const CbMixin = superClass =>
       state[objIndex][fieldToUpdate] = updateTo;
       this.requestUpdate();
       window.scrollTo({ top: 0 });
-    }
-
-    updated(changedProperties) {
-      super.updated?.(changedProperties);
-
-      // console.log(`${this.localName} was updated`);
     }
   };

@@ -97,17 +97,6 @@ export class CbContainer extends CbMixin(LitElement) {
     this.rateResponse(responseId);
   }
 
-  connectedCallback() {
-    super.connectedCallback();
-
-    addEventListener('keydown', this.handleKeydown.bind(this));
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
-    window.removeEventListener('keydown', this.handleKeydown.bind(this));
-  }
-
   render() {
     const { message, isDrawer, messageToResponse, handleReplay, sendMessage } = this;
 
@@ -143,6 +132,7 @@ export class CbContainer extends CbMixin(LitElement) {
               placeholder="Type a message"
               ?disabled=${isDrawer}
               .value=${message}
+              @keydown=${event => this.handleKeydown(event, 'message')}
               @input=${e => (this.message = e.target.value)}
             ></cb-input>
             <cb-button @click=${sendMessage}> ${sendIcon} </cb-button>

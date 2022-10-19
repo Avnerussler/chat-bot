@@ -13,6 +13,10 @@ export const style = css`
     border-radius: 7px;
     display: flex;
     justify-content: center;
+    color: white;
+  }
+  ::slotted(*) {
+    width: 52px;
   }
 `;
 
