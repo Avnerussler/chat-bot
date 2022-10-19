@@ -12,8 +12,3 @@ export const style = css`
     border: none;
   }
 `;
-
-//   .input,
-//   :disabled {
-//     cursor: not-allowed;
-//   }

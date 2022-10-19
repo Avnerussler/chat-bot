@@ -65,9 +65,7 @@ export const CbMixin = superClass =>
 
     updateState(state, id, fieldToUpdate, updateTo) {
       const objIndex = state.findIndex(obj => obj._id == id);
-      console.log(state, id);
       state[objIndex][fieldToUpdate] = updateTo;
-
       this.requestUpdate();
     }
   };
